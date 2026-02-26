@@ -16,7 +16,7 @@
     "type": "git",
     "url": "https://github.com/Biological-Sovereignty-Protocol/bsp-sdk-typescript"
   },
-  "homepage": "https://bsp.dev",
+  "homepage": "https://biologicalsovereigntyprotocol.com",
   "peerDependencies": {
     "typescript": ">=5.0.0"
   },
