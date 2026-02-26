@@ -1,0 +1,27 @@
+{
+  "name": "@bsp/sdk",
+  "version": "0.2.0",
+  "description": "Official TypeScript SDK for the Biological Sovereignty Protocol",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": ["bsp", "biological-sovereignty", "longevity", "health-data", "biomarker"],
+  "author": "Ambrósio Institute",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Biological-Sovereignty-Protocol/bsp-sdk-typescript"
+  },
+  "homepage": "https://bsp.dev",
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
