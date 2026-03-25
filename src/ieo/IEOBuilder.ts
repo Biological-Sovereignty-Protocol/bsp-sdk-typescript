@@ -33,7 +33,7 @@ export interface IEOCreateResult {
  * const ieo = new IEOBuilder({
  *   domain:       'fleury.bsp',
  *   name:         'Fleury Laboratórios',
- *   ieo_type:     'LABORATORY',
+ *   ieo_type:     'LAB',
  *   jurisdiction: 'BR',
  *   legal_id:     '60.840.055/0001-31',
  *   contact:      'bsp@fleury.com.br',
@@ -61,7 +61,7 @@ export class IEOBuilder {
         if (!options.legal_id || options.legal_id.trim().length < 5) {
             throw new Error('legal_id is required (CNPJ, EIN, VAT, etc.)')
         }
-        const validTypes: IEOType[] = ['LABORATORY', 'HOSPITAL', 'WEARABLE', 'PHYSICIAN', 'INSURER', 'RESEARCH', 'PLATFORM']
+        const validTypes: IEOType[] = ['LAB', 'HOSPITAL', 'WEARABLE', 'PHYSICIAN', 'INSURER', 'RESEARCH', 'PLATFORM']
         if (!validTypes.includes(options.ieo_type)) {
             throw new Error(`Invalid ieo_type: "${options.ieo_type}". Must be one of: ${validTypes.join(', ')}`)
         }

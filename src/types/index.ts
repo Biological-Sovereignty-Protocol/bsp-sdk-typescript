@@ -13,14 +13,14 @@ export type BioLevel = 'CORE' | 'STANDARD' | 'EXTENDED' | 'DEVICE'
 export type RecordStatus = 'ACTIVE' | 'SUPERSEDED' | 'PENDING'
 export type IEOStatus = 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'PENDING'
 export type CertLevel = 'UNCERTIFIED' | 'BASIC' | 'ADVANCED' | 'FULL' | 'DEVICE' | 'RESEARCH'
-export type IEOType = 'LABORATORY' | 'HOSPITAL' | 'WEARABLE' | 'PHYSICIAN' | 'INSURER' | 'RESEARCH' | 'PLATFORM'
+export type IEOType = 'LAB' | 'HOSPITAL' | 'WEARABLE' | 'PHYSICIAN' | 'INSURER' | 'RESEARCH' | 'PLATFORM'
 
 export type BSPIntent =
   | 'SUBMIT_RECORD'
   | 'READ_RECORDS'
   | 'ANALYZE_VITALITY'
   | 'REQUEST_SCORE'
-  | 'SOVEREIGN_EXPORT'
+  | 'EXPORT_DATA'
   | 'SYNC_PROTOCOL'
 
 export type ExportFormat = 'JSON' | 'CSV' | 'FHIR_R4'

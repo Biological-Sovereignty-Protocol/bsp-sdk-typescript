@@ -115,15 +115,41 @@ export class BioRecordBuilder {
         throw new Error(`BioRecord missing required field: "${field}"`)
       }
     }
+
+    // Validate collected_at is a parseable ISO8601 timestamp
+    const collectedAtMs = new Date(this.data.collected_at!).getTime()
+    if (isNaN(collectedAtMs)) {
+      throw new Error(`collected_at must be a valid ISO8601 timestamp — got: "${this.data.collected_at}"`)
+    }
+    if (collectedAtMs > Date.now() + 60_000) {
+      throw new Error('collected_at cannot be in the future')
+    }
+
+    // level is derived by setBiomarker(); if biomarker is set but level is not, something went wrong
+    if (!this.data.level) {
+      throw new Error('level is not set — call setBiomarker() before build()')
+    }
+
     this.data.submitted_at = new Date().toISOString()
 
-    // Build source with ieo_domain
+    // Provide a minimal ref_range stub if caller omitted it (optional field in spec)
+    if (!this.data.ref_range) {
+      this.data.ref_range = {
+        optimal: '',
+        functional: '',
+        deficiency: null,
+        toxicity: null,
+        unit: this.data.unit ?? '',
+      }
+    }
+
+    // Build source — signature is populated by the exchange layer after submission
     if (!this.data.source) {
       this.data.source = {
         ieo_id: '',
         ieo_domain: this.ieo_domain,
         method: 'unknown',
-        signature: '',
+        signature: '',  // populated by ExchangeClient on submit
       }
     }
 

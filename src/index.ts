@@ -16,3 +16,8 @@ export { TaxonomyResolver } from './biorecord/TaxonomyResolver'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 export * from './types'
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+export { CryptoUtils } from './utils/CryptoUtils'
+export { HttpClient, BSPApiError } from './utils/HttpClient'
+export type { KeyPair } from './utils/CryptoUtils'

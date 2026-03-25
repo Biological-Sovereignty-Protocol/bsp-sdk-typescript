@@ -1,4 +1,4 @@
-import { BSPConfig, BioRecord, ConsentToken, ReadFilters, ReadResult, SubmitResult, BSPIntent } from '../types'
+import { BSPConfig, BioRecord, ConsentToken, ReadFilters, ReadResult, SubmitResult, BSPIntent } from './types'
 import { BEOClient } from './beo/BEOClient'
 import { IEOBuilder, IEOBuilderOptions } from './ieo/IEOBuilder'
 import { BioRecordBuilder } from './biorecord/BioRecordBuilder'
@@ -67,6 +67,10 @@ export class BSPClient {
         }
         if (!config.private_key) {
             throw new Error('private_key is required')
+        }
+        // Ed25519 secret key = 64 bytes = 128 hex chars
+        if (!/^[0-9a-f]{128}$/i.test(config.private_key)) {
+            throw new Error('private_key must be a 128-character hex-encoded Ed25519 secret key (64 bytes)')
         }
         if (!['mainnet', 'testnet', 'local'].includes(config.environment)) {
             throw new Error(`environment must be "mainnet", "testnet", or "local"`)
