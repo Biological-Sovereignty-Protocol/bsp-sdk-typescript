@@ -180,7 +180,7 @@ export class BEOClient {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
-        const payloadToSign = { function: 'lockBEO', beoId, reason: reason ?? null, nonce, timestamp }
+        const payloadToSign = { function: 'lockBEO', beoId, nonce, timestamp }
         const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
 
         const result = await this.http.post<{ locked_at: ISO8601; transactionId: string }>('/api/relayer/beo/lock', {
