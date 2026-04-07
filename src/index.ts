@@ -7,6 +7,7 @@ export { BSPClient } from './BSPClient'
 // ─── Builders ────────────────────────────────────────────────────────────────
 export { BEOClient } from './beo/BEOClient'
 export { IEOBuilder } from './ieo/IEOBuilder'
+export { IEOClient } from './ieo/IEOClient'
 export { BioRecordBuilder } from './biorecord/BioRecordBuilder'
 
 // ─── Modules ─────────────────────────────────────────────────────────────────

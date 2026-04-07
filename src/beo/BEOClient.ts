@@ -221,6 +221,63 @@ export class BEOClient {
      *
      * @param beoId The UUID of the BEO whose recovery config to update.
      */
+    /**
+     * Destroy a BEO permanently — LGPD Art. 18 / GDPR Art. 17 (right to erasure).
+     * Irreversible: nullifies public key, revokes all ConsentTokens, releases domain.
+     */
+    async destroy(beoId: UUID): Promise<{ destroyed_at: ISO8601; arweave_tx: string }> {
+        const nonce = CryptoUtils.generateNonce()
+        const timestamp = new Date().toISOString()
+
+        const payloadToSign = { function: 'destroyBEO', beoId, nonce, timestamp }
+        const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
+
+        const result = await this.http.post<{ destroyed_at: ISO8601; transactionId: string }>('/api/relayer/beo/destroy', {
+            beoId,
+            signature,
+            nonce,
+            timestamp,
+        })
+
+        return { destroyed_at: result.destroyed_at, arweave_tx: result.transactionId }
+    }
+
+    /**
+     * Rotate the BEO's Ed25519 key. Requires signature with the current key.
+     * After rotation, only the new key can sign operations.
+     */
+    async rotateKey(beoId: UUID, newPrivateKey: string): Promise<{ arweave_tx: string }> {
+        const newKeypair = CryptoUtils.keyPairFromSeed(newPrivateKey.slice(0, 64))
+        const nonce = CryptoUtils.generateNonce()
+        const timestamp = new Date().toISOString()
+
+        const payloadToSign = { function: 'rotateKey', beoId, newPublicKey: newKeypair.publicKey, nonce, timestamp }
+        const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
+
+        const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo/rotate-key', {
+            beoId,
+            newPublicKey: newKeypair.publicKey,
+            signature,
+            nonce,
+            timestamp,
+        })
+
+        return { arweave_tx: result.transactionId }
+    }
+
+    /**
+     * Request Social Recovery — initiates recovery on a new device.
+     * Guardians will be notified to confirm.
+     */
+    async requestRecovery(beoId: UUID, newPublicKey: string): Promise<{ arweave_tx: string }> {
+        const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo/request-recovery', {
+            beoId,
+            newPublicKey,
+        })
+
+        return { arweave_tx: result.transactionId }
+    }
+
     async updateRecovery(beoId: UUID, config: RecoveryConfig): Promise<{ arweave_tx: string }> {
         if (config.threshold < 1 || config.threshold > config.guardians.length) {
             throw new Error(`threshold must be between 1 and ${config.guardians.length}`)
