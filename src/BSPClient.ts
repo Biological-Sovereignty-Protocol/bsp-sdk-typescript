@@ -1,6 +1,7 @@
 import { BSPConfig, BioRecord, ConsentToken, ReadFilters, ReadResult, SubmitResult, BSPIntent } from './types'
 import { BEOClient } from './beo/BEOClient'
 import { IEOBuilder, IEOBuilderOptions } from './ieo/IEOBuilder'
+import { IEOClient } from './ieo/IEOClient'
 import { BioRecordBuilder } from './biorecord/BioRecordBuilder'
 import { TaxonomyResolver } from './biorecord/TaxonomyResolver'
 import { AccessManager } from './access/AccessManager'
@@ -50,6 +51,7 @@ import { ExchangeClient } from './exchange/ExchangeClient'
 export class BSPClient {
     readonly config: BSPConfig
     readonly beo: BEOClient
+    readonly ieo: IEOClient
     readonly access: AccessManager
     private exchange: ExchangeClient
 
@@ -57,6 +59,7 @@ export class BSPClient {
         this.validateConfig(config)
         this.config = config
         this.beo = new BEOClient(config)
+        this.ieo = new IEOClient(config)
         this.access = new AccessManager(config)
         this.exchange = new ExchangeClient(config)
     }
