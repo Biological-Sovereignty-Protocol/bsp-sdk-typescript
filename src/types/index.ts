@@ -8,11 +8,11 @@ export type ArweaveTx = string
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export type BEOStatus = 'ACTIVE' | 'LOCKED' | 'RECOVERY_PENDING'
+export type BEOStatus = 'ACTIVE' | 'LOCKED' | 'DESTROYED' | 'RECOVERY_PENDING'
 export type BioLevel = 'CORE' | 'STANDARD' | 'EXTENDED' | 'DEVICE'
 export type RecordStatus = 'ACTIVE' | 'SUPERSEDED' | 'PENDING'
-export type IEOStatus = 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'PENDING'
-export type CertLevel = 'UNCERTIFIED' | 'BASIC' | 'ADVANCED' | 'FULL' | 'DEVICE' | 'RESEARCH'
+export type IEOStatus = 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'DESTROYED' | 'LOCKED' | 'PENDING'
+export type CertLevel = 'UNCERTIFIED' | 'BASIC' | 'ADVANCED' | 'RESEARCH_PARTNER'
 export type IEOType = 'LAB' | 'HOSPITAL' | 'WEARABLE' | 'PHYSICIAN' | 'INSURER' | 'RESEARCH' | 'PLATFORM'
 
 export type BSPIntent =
