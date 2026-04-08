@@ -139,6 +139,9 @@ export class CryptoUtils {
 
     private static hexToBytes(hex: string): Uint8Array {
         const _hex = hex.replace(/^0x/i, '')
+        if (_hex.length % 2 !== 0) {
+            throw new Error(`Invalid hex string length: ${_hex.length} (must be even)`)
+        }
         const bytes = new Uint8Array(_hex.length / 2)
         for (let i = 0; i < bytes.length; i++) {
             bytes[i] = parseInt(_hex.substring(i * 2, i * 2 + 2), 16)
