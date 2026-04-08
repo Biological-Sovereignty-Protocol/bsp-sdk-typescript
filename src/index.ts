@@ -1,4 +1,4 @@
-// @bsp/sdk — Public API
+// bsp-sdk — Public API
 // Official TypeScript SDK for the Biological Sovereignty Protocol
 
 // ─── Main Client ─────────────────────────────────────────────────────────────

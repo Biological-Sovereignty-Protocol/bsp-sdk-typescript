@@ -15,7 +15,7 @@ import { ExchangeClient } from './exchange/ExchangeClient'
  *
  * @example
  * ```typescript
- * import { BSPClient } from '@bsp/sdk'
+ * import { BSPClient } from 'bsp-sdk'
  *
  * const client = new BSPClient({
  *   ieo_domain:  'fleury.bsp',
