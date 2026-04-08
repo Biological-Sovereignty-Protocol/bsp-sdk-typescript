@@ -11,11 +11,11 @@ Official TypeScript SDK for the [Biological Sovereignty Protocol](https://biolog
 ## Installation
 
 ```bash
-npm install @bsp/sdk
+npm install bsp-sdk
 # or
-yarn add @bsp/sdk
+yarn add bsp-sdk
 # or
-pnpm add @bsp/sdk
+pnpm add bsp-sdk
 ```
 
 Requires Node.js >= 18 and TypeScript >= 5.0.
@@ -27,7 +27,7 @@ Requires Node.js >= 18 and TypeScript >= 5.0.
 Minimal working example: create a BEO, grant consent, and submit a biomarker record.
 
 ```typescript
-import { BEOClient, AccessManager, BioRecordBuilder, ExchangeClient } from '@bsp/sdk'
+import { BEOClient, AccessManager, BioRecordBuilder, ExchangeClient } from 'bsp-sdk'
 
 // 1. Create a Biological Entity Object (the individual's sovereign identity)
 const beoClient = new BEOClient()
@@ -72,7 +72,7 @@ console.log(result.arweave_txs) // permanent record on Arweave
 Manages Biological Entity Objects — the sovereign identity of a biological individual.
 
 ```typescript
-import { BEOClient } from '@bsp/sdk'
+import { BEOClient } from 'bsp-sdk'
 const client = new BEOClient()
 ```
 
@@ -92,7 +92,7 @@ const client = new BEOClient()
 Manages Institutional Entity Objects — the identity of labs, hospitals, platforms.
 
 ```typescript
-import { IEOBuilder } from '@bsp/sdk'
+import { IEOBuilder } from 'bsp-sdk'
 const builder = new IEOBuilder()
 ```
 
@@ -123,7 +123,7 @@ const builder = new IEOBuilder()
 Fluent builder for constructing and signing BioRecords before submission.
 
 ```typescript
-import { BioRecordBuilder } from '@bsp/sdk'
+import { BioRecordBuilder } from 'bsp-sdk'
 
 const record = new BioRecordBuilder()
   .beoId('uuid-of-beo')
@@ -159,7 +159,7 @@ const record = new BioRecordBuilder()
 Submits and queries biological records on behalf of an institution.
 
 ```typescript
-import { ExchangeClient } from '@bsp/sdk'
+import { ExchangeClient } from 'bsp-sdk'
 const exchange = new ExchangeClient({ ieoId: 'my-lab.bsp', privateKey })
 ```
 
@@ -176,7 +176,7 @@ const exchange = new ExchangeClient({ ieoId: 'my-lab.bsp', privateKey })
 Grants, verifies, and revokes ConsentTokens on behalf of a BEO.
 
 ```typescript
-import { AccessManager } from '@bsp/sdk'
+import { AccessManager } from 'bsp-sdk'
 const manager = new AccessManager({ beo, privateKey })
 ```
 
@@ -194,7 +194,7 @@ const manager = new AccessManager({ beo, privateKey })
 Low-level cryptographic primitives used internally. Exposed for advanced use cases.
 
 ```typescript
-import { CryptoUtils } from '@bsp/sdk'
+import { CryptoUtils } from 'bsp-sdk'
 ```
 
 | Method | Params | Returns | Description |
@@ -220,7 +220,7 @@ import {
   BioRecordBuilder,
   ExchangeClient,
   CryptoUtils,
-} from '@bsp/sdk'
+} from 'bsp-sdk'
 
 // ── 1. Institution setup (done once) ─────────────────────────────────────────
 const ieoBuilder = new IEOBuilder()
@@ -311,7 +311,7 @@ await accessManager.revokeToken(token.token_id)
 All SDK methods throw a `BSPError`-shaped object on failure. Always wrap calls in `try/catch`.
 
 ```typescript
-import type { BSPError } from '@bsp/sdk'
+import type { BSPError } from 'bsp-sdk'
 
 try {
   const result = await exchange.submit(record, token)
@@ -345,7 +345,7 @@ Common error codes:
 Configure via environment variables or by passing `BSPConfig` directly.
 
 ```typescript
-import { BSPClient } from '@bsp/sdk'
+import { BSPClient } from 'bsp-sdk'
 
 const client = new BSPClient({
   ieo_domain: 'my-lab.bsp',
