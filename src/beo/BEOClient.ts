@@ -103,7 +103,7 @@ export class BEOClient {
         })
 
         const now: ISO8601 = timestamp
-        // beo_id = Arweave transaction ID (SmartWeave.transaction.id in the contract).
+        // beo_id = Arweave transaction ID (ao.id in the process).
         // The relayer's originalTxId IS the transaction the contract reads, so it matches.
         const beo_id = result.transactionId
         const beo: BEO = {

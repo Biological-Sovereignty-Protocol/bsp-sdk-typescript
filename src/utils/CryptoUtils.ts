@@ -57,7 +57,7 @@ export class CryptoUtils {
      * Uses a sorted JSON stringify to ensure signature consistency.
      * 
      * @param payload Any JavaScript object
-     * @param privateKeyHex The Ed25519 private key as a hex string (from Warp Wallet)
+     * @param privateKeyHex The Ed25519 private key as a hex string (from Arweave Wallet)
      * @returns Base64 encoded signature
      */
     static signPayload(payload: Record<string, any>, privateKeyHex: string): string {
@@ -67,7 +67,7 @@ export class CryptoUtils {
             const messageBytes = new TextEncoder().encode(sortedJson)
 
             // 2. Decode hex private key to bytes
-            // Warp SDK produces a raw 64-byte key or similar. TweetNaCl expects 64 bytes for signing key.
+            // AO/Arweave wallet produces a raw 64-byte key or similar. TweetNaCl expects 64 bytes for signing key.
             const secretKeyBytes = this.hexToBytes(privateKeyHex)
             if (secretKeyBytes.length !== 64) {
                 throw new Error(`Invalid private key length. Expected 64 bytes for Ed25519 secret key, got ${secretKeyBytes.length}`)
