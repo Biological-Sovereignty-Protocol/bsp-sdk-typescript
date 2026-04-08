@@ -1,6 +1,6 @@
 # BSP SDK — Examples
 
-Runnable examples for the `@bsp/sdk` TypeScript SDK.
+Runnable examples for the `bsp-sdk` TypeScript SDK.
 
 ## Prerequisites
 

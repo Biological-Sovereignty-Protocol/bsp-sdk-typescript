@@ -1,4 +1,4 @@
-# Publishing @bsp/sdk
+# Publishing bsp-sdk
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@
 To verify the publish succeeded:
 
 ```bash
-npm view @bsp/sdk versions
+npm view bsp-sdk versions
 ```
 
 ---
@@ -83,13 +83,13 @@ npm publish --tag canary --access public
 Consumers install it explicitly:
 
 ```bash
-npm install @bsp/sdk@canary
+npm install bsp-sdk@canary
 ```
 
 Promote to `latest` when stable:
 
 ```bash
-npm dist-tag add @bsp/sdk@1.3.0-rc.1 latest
+npm dist-tag add bsp-sdk@1.3.0-rc.1 latest
 ```
 
 ---
@@ -99,7 +99,7 @@ npm dist-tag add @bsp/sdk@1.3.0-rc.1 latest
 If a version has a critical bug, deprecate it — do not unpublish (npm strongly discourages unpublishing).
 
 ```bash
-npm deprecate @bsp/sdk@1.2.0 "Critical bug in consent verification — upgrade to 1.2.1"
+npm deprecate bsp-sdk@1.2.0 "Critical bug in consent verification — upgrade to 1.2.1"
 ```
 
 ---

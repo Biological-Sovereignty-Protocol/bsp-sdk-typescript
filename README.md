@@ -1,8 +1,8 @@
-[![npm version](https://img.shields.io/npm/v/@bsp/sdk.svg)](https://www.npmjs.com/package/@bsp/sdk)
+[![npm version](https://img.shields.io/npm/v/bsp-sdk.svg)](https://www.npmjs.com/package/bsp-sdk)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org)
 
-# @bsp/sdk
+# bsp-sdk
 
 Official TypeScript SDK for the [Biological Sovereignty Protocol](https://biologicalsovereigntyprotocol.com) — giving individuals sovereign control over their biological data.
 
@@ -375,7 +375,7 @@ BSP_TIMEOUT_MS=30000
 
 ## TypeScript Types
 
-Key interfaces exported from `@bsp/sdk`:
+Key interfaces exported from `bsp-sdk`:
 
 ```typescript
 // The sovereign identity of a biological individual
