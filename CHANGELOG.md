@@ -13,10 +13,10 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - **BEOClient**: create, recover (BIP39 seed phrase), rotate key, lock, unlock, and fetch Biological Entity Objects
 - **IEOClient / IEOBuilder**: register institution identities (IEOs), manage certifications, rotate keys, update contact metadata
 - **BioRecordBuilder**: fluent builder for constructing, validating, and signing biological records; supports all BSP biomarker levels (`CORE`, `STANDARD`, `EXTENDED`, `DEVICE`)
-- **ExchangeClient**: submit signed BioRecords to the exchange with automated consent verification; query records by BEO with `ReadFilters`; verify Arweave integrity by record ID
+- **ExchangeClient**: submit signed BioRecords to the exchange with automated consent verification; query records by BEO with `ReadFilters`; verify on-chain integrity by record ID
 - **AccessManager**: grant ConsentTokens with fine-grained `TokenScope` (intents, categories, levels, time period, max records); verify token signatures and revocation status; revoke tokens; list active tokens per BEO
 - **CryptoUtils**: Ed25519 key pair generation via `tweetnacl`; BIP39 24-word seed phrase generation and deterministic key recovery; Shamir Secret Sharing split/recover for social key recovery; `verifySignature` utility
-- **BSPClient**: unified entry-point client accepting `BSPConfig` (environment, registry URL, Arweave node, timeout)
+- **BSPClient**: unified entry-point client accepting `BSPConfig` (environment, registry URL, Aptos contract address, timeout)
 - **TaxonomyResolver**: validates and resolves BSP biomarker codes against the protocol taxonomy
 - **Full TypeScript types**: `BEO`, `IEO`, `BioRecord`, `ConsentToken`, `TokenScope`, `SubmitResult`, `ReadResult`, `ReadFilters`, `BSPConfig`, `BSPError`, and all supporting enums and interfaces
 - **Dual module output**: CommonJS (`require`) and ESM (`import`) via `exports` field in `package.json`

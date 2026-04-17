@@ -1,10 +1,13 @@
-// BSP Core Types — v1.0
+// BSP Core Types — v2.0 (Aptos)
 // Full type definitions for the Biological Sovereignty Protocol SDK
 
 export type ISO8601 = string
 export type SemVer = string
 export type UUID = string
-export type ArweaveTx = string
+export type AptosTxHash = string
+
+/** @deprecated Use AptosTxHash instead. Kept for migration compatibility. */
+export type ArweaveTx = AptosTxHash
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
@@ -51,7 +54,7 @@ export interface BEO {
   recovery: RecoveryConfig
   status: BEOStatus
   locked_at: ISO8601 | null
-  arweave_tx?: ArweaveTx
+  aptos_tx?: AptosTxHash
 }
 
 // ─── IEO ─────────────────────────────────────────────────────────────────────
@@ -77,7 +80,7 @@ export interface IEO {
   version: SemVer
   certification: IEOCertification
   status: IEOStatus
-  arweave_tx?: ArweaveTx
+  aptos_tx?: AptosTxHash
 }
 
 // ─── BioRecord ───────────────────────────────────────────────────────────────
@@ -118,7 +121,7 @@ export interface BioRecord {
   confidence?: number
   status: RecordStatus
   supersedes: UUID | null
-  arweave_tx?: ArweaveTx
+  aptos_tx?: AptosTxHash
   data_hash?: string
 }
 
@@ -149,7 +152,7 @@ export interface ConsentToken {
   revoked_at: ISO8601 | null
   owner_signature: string
   token_hash: string
-  arweave_tx?: ArweaveTx
+  aptos_tx?: AptosTxHash
   version: SemVer
 }
 
@@ -168,7 +171,7 @@ export interface SubmitResult {
   request_id: string
   status: BSPStatus
   record_ids: string[]
-  arweave_txs: string[]
+  aptos_txs: string[]
   timestamp: ISO8601
   error?: BSPError
 }
@@ -197,11 +200,18 @@ export interface ReadFilters {
 
 // ─── SDK Config ───────────────────────────────────────────────────────────────
 
+export type AptosNetwork = 'mainnet' | 'testnet' | 'devnet' | 'local'
+
 export interface BSPConfig {
   ieo_domain: string
   private_key: string
   environment: 'mainnet' | 'testnet' | 'local'
   registry_url?: string
-  arweave_node?: string
+  /** Aptos Move contract address where BSP modules are deployed */
+  contract_address?: string
+  /** Aptos network for direct chain queries (defaults to match environment) */
+  aptos_network?: AptosNetwork
+  /** Aptos fullnode URL override (optional, defaults based on aptos_network) */
+  aptos_node_url?: string
   timeout_ms?: number
 }

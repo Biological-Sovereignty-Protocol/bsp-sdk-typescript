@@ -47,7 +47,7 @@ export class IEOClient {
         return this.http.get(`/api/ieos/${ieoId}/certification`)
     }
 
-    async lock(ieoId: UUID): Promise<{ locked_at: ISO8601; arweave_tx: string }> {
+    async lock(ieoId: UUID): Promise<{ locked_at: ISO8601; aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -58,10 +58,10 @@ export class IEOClient {
             ieoId, signature, nonce, timestamp,
         })
 
-        return { locked_at: result.locked_at, arweave_tx: result.transactionId }
+        return { locked_at: result.locked_at, aptos_tx: result.transactionId }
     }
 
-    async unlock(ieoId: UUID): Promise<{ unlocked_at: ISO8601; arweave_tx: string }> {
+    async unlock(ieoId: UUID): Promise<{ unlocked_at: ISO8601; aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -72,10 +72,10 @@ export class IEOClient {
             ieoId, signature, nonce, timestamp,
         })
 
-        return { unlocked_at: result.unlocked_at, arweave_tx: result.transactionId }
+        return { unlocked_at: result.unlocked_at, aptos_tx: result.transactionId }
     }
 
-    async rotateKey(ieoId: UUID, newSeedHex: string): Promise<{ arweave_tx: string }> {
+    async rotateKey(ieoId: UUID, newSeedHex: string): Promise<{ aptos_tx: string }> {
         const newKeypair = CryptoUtils.keyPairFromSeed(newSeedHex)
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
@@ -87,10 +87,10 @@ export class IEOClient {
             ieoId, newPublicKey: newKeypair.publicKey, signature, nonce, timestamp,
         })
 
-        return { arweave_tx: result.transactionId }
+        return { aptos_tx: result.transactionId }
     }
 
-    async updateContacts(ieoId: UUID, contacts: { apiEndpoint?: string; webhookUrl?: string }): Promise<{ arweave_tx: string }> {
+    async updateContacts(ieoId: UUID, contacts: { apiEndpoint?: string; webhookUrl?: string }): Promise<{ aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -107,10 +107,10 @@ export class IEOClient {
             signature, nonce, timestamp,
         })
 
-        return { arweave_tx: result.transactionId }
+        return { aptos_tx: result.transactionId }
     }
 
-    async updateRecovery(ieoId: UUID, recovery: any): Promise<{ arweave_tx: string }> {
+    async updateRecovery(ieoId: UUID, recovery: any): Promise<{ aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -121,10 +121,10 @@ export class IEOClient {
             ieoId, recovery: recovery ?? null, signature, nonce, timestamp,
         })
 
-        return { arweave_tx: result.transactionId }
+        return { aptos_tx: result.transactionId }
     }
 
-    async destroy(ieoId: UUID): Promise<{ destroyed_at: ISO8601; arweave_tx: string }> {
+    async destroy(ieoId: UUID): Promise<{ destroyed_at: ISO8601; aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -135,6 +135,6 @@ export class IEOClient {
             ieoId, signature, nonce, timestamp,
         })
 
-        return { destroyed_at: result.destroyed_at, arweave_tx: result.transactionId }
+        return { destroyed_at: result.destroyed_at, aptos_tx: result.transactionId }
     }
 }

@@ -8,7 +8,7 @@
  * Requirements: BSP_RELAYER_URL in .env (optional for simulated flow)
  *
  * NOTE: The BSP registry is in active development. This example uses a
- * simulated mode that shows the full flow without a live Arweave connection.
+ * simulated mode that shows the full flow without a live Aptos connection.
  * When the registry is live, remove the SIMULATE_MODE flag.
  */
 
@@ -36,7 +36,7 @@ const config: BSPConfig = {
 
 // ─── Simulation helpers (replace with real SDK calls when registry is live) ──
 
-function simulatedBEO(domain: string): { beo: BEO; beo_id: string; arweave_tx: string; private_key: string; seed_phrase: string; warning: string } {
+function simulatedBEO(domain: string): { beo: BEO; beo_id: string; aptos_tx: string; private_key: string; seed_phrase: string; warning: string } {
   const beo: BEO = {
     beo_id: `beo_${domain.replace('.', '_')}_${Date.now()}`,
     domain,
@@ -49,14 +49,14 @@ function simulatedBEO(domain: string): { beo: BEO; beo_id: string; arweave_tx: s
   return {
     beo,
     beo_id: beo.beo_id,
-    arweave_tx: `arweave_tx_${Math.random().toString(36).slice(2)}`,
+    aptos_tx: `aptos_tx_${Math.random().toString(36).slice(2)}`,
     private_key: `BSP_BEO_PRIVATE_KEY_${Math.random().toString(36).slice(2)}`,
     seed_phrase: 'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12',
     warning: 'SIMULATED — store private_key in .env as BSP_BEO_PRIVATE_KEY, seed_phrase offline.',
   }
 }
 
-function simulatedIEO(domain: string, name: string): { ieo: IEO; ieo_id: string; arweave_tx: string; private_key: string; seed_phrase: string; warning: string } {
+function simulatedIEO(domain: string, name: string): { ieo: IEO; ieo_id: string; aptos_tx: string; private_key: string; seed_phrase: string; warning: string } {
   const ieo: IEO = {
     ieo_id: `ieo_${domain.replace('.', '_')}_${Date.now()}`,
     domain,
@@ -80,7 +80,7 @@ function simulatedIEO(domain: string, name: string): { ieo: IEO; ieo_id: string;
   return {
     ieo,
     ieo_id: ieo.ieo_id,
-    arweave_tx: `arweave_tx_${Math.random().toString(36).slice(2)}`,
+    aptos_tx: `aptos_tx_${Math.random().toString(36).slice(2)}`,
     private_key: `BSP_IEO_PRIVATE_KEY_${Math.random().toString(36).slice(2)}`,
     seed_phrase: 'alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima',
     warning: 'SIMULATED — store private_key in .env as BSP_IEO_PRIVATE_KEY, seed_phrase offline.',
@@ -146,11 +146,11 @@ async function main() {
     }
   }
 
-  const { beo, beo_id, arweave_tx: beoTx } = beoResult
+  const { beo, beo_id, aptos_tx: beoTx } = beoResult
   console.log('  BEO created:')
   console.log(`    domain:      ${beo.domain}`)
   console.log(`    beo_id:      ${beo_id}`)
-  console.log(`    arweave_tx:  ${beoTx}`)
+  console.log(`    aptos_tx:  ${beoTx}`)
   console.log(`  ⚠  ${beoResult.warning}`)
 
   // ─── Step 2: Create institution identity (IEO) ───────────────────────────
@@ -183,11 +183,11 @@ async function main() {
     ieoResult = await ieoBuilder.register()
   }
 
-  const { ieo, ieo_id, arweave_tx: ieoTx } = ieoResult
+  const { ieo, ieo_id, aptos_tx: ieoTx } = ieoResult
   console.log('  IEO registered:')
   console.log(`    domain:      ${ieo.domain}`)
   console.log(`    ieo_id:      ${ieo_id}`)
-  console.log(`    arweave_tx:  ${ieoTx}`)
+  console.log(`    aptos_tx:  ${ieoTx}`)
   console.log(`  ⚠  ${ieoResult.warning}`)
 
   // ─── Step 3: Grant consent ────────────────────────────────────────────────
@@ -261,7 +261,7 @@ async function main() {
   if (SIMULATE_MODE) {
     submitResult = {
       submitted_count: 1,
-      arweave_txs: [`arweave_tx_record_${Math.random().toString(36).slice(2)}`],
+      aptos_txs: [`aptos_tx_record_${Math.random().toString(36).slice(2)}`],
       errors: [],
     } as any
   } else {
@@ -274,7 +274,7 @@ async function main() {
 
   console.log('  Submitted:')
   console.log(`    count:       ${submitResult.submitted_count}`)
-  console.log(`    arweave_txs: ${(submitResult as any).arweave_txs.join(', ')}`)
+  console.log(`    aptos_txs: ${(submitResult as any).aptos_txs.join(', ')}`)
 
   // ─── Step 5: Query records ────────────────────────────────────────────────
 
@@ -318,7 +318,7 @@ async function main() {
     revokeResult = {
       token_id: token.token_id,
       revoked_at: new Date().toISOString(),
-      arweave_tx: `arweave_tx_revoke_${Math.random().toString(36).slice(2)}`,
+      aptos_tx: `aptos_tx_revoke_${Math.random().toString(36).slice(2)}`,
     }
   } else {
     revokeResult = await accessManager.revokeConsent(token.token_id)
@@ -327,7 +327,7 @@ async function main() {
   console.log('  Token revoked:')
   console.log(`    token_id:   ${revokeResult.token_id}`)
   console.log(`    revoked_at: ${revokeResult.revoked_at}`)
-  console.log(`    arweave_tx: ${revokeResult.arweave_tx}`)
+  console.log(`    aptos_tx: ${revokeResult.aptos_tx}`)
 
   // ─── Step 7: Verify revocation ────────────────────────────────────────────
 

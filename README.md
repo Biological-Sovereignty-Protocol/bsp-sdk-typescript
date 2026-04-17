@@ -60,7 +60,7 @@ const record = new BioRecordBuilder()
 // 4. Submit via an institution's ExchangeClient
 const exchange = new ExchangeClient({ ieoId: 'my-lab.bsp', privateKey: labPrivateKey })
 const result = await exchange.submit(record, token)
-console.log(result.arweave_txs) // permanent record on Arweave
+console.log(result.aptos_txs) // permanent record on Aptos
 ```
 
 ---
@@ -167,7 +167,7 @@ const exchange = new ExchangeClient({ ieoId: 'my-lab.bsp', privateKey })
 |---|---|---|---|
 | `submit(record, token)` | `BioRecord, ConsentToken` | `Promise<SubmitResult>` | Submits a signed record; verifies consent before writing |
 | `query(beoId, token, filters?)` | `string, ConsentToken, ReadFilters?` | `Promise<ReadResult>` | Reads records for a BEO within consent scope |
-| `verify(recordId)` | `string` | `Promise<boolean>` | Verifies a record's hash against its Arweave transaction |
+| `verify(recordId)` | `string` | `Promise<boolean>` | Verifies a record's hash against its Aptos transaction |
 
 ---
 
@@ -291,7 +291,7 @@ const record = new BioRecordBuilder()
 
 const exchange = new ExchangeClient({ ieoId: lab.ieo_id, privateKey: labKeyPair.privateKey })
 const submitResult = await exchange.submit(record, token)
-console.log('Arweave TX:', submitResult.arweave_txs[0])
+console.log('Aptos TX:', submitResult.aptos_txs[0])
 
 // ── 5. Lab queries back the records ──────────────────────────────────────────
 const readResult = await exchange.query(beo.beo_id, token, {
@@ -335,7 +335,7 @@ Common error codes:
 | `BEO_LOCKED` | No | BEO is in LOCKED state; no writes allowed |
 | `IEO_SUSPENDED` | No | Institution's IEO has been suspended |
 | `REGISTRY_UNAVAILABLE` | Yes | BSP registry node is temporarily unreachable |
-| `ARWEAVE_TIMEOUT` | Yes | Arweave write timed out; record is pending |
+| `APTOS_TIMEOUT` | Yes | Aptos transaction timed out; record is pending |
 | `INVALID_BIOMARKER` | No | BSP taxonomy code not found or malformed |
 
 ---
@@ -352,7 +352,8 @@ const client = new BSPClient({
   private_key: process.env.BSP_PRIVATE_KEY!,
   environment: 'mainnet',          // 'mainnet' | 'testnet' | 'local'
   registry_url: 'https://api.biologicalsovereigntyprotocol.com',
-  arweave_node: 'https://arweave.net',
+  contract_address: '0x...your_contract_address',
+  aptos_network: 'mainnet',       // 'mainnet' | 'testnet' | 'devnet' | 'local'
   timeout_ms: 30000,
 })
 ```
@@ -367,7 +368,8 @@ BSP_ENVIRONMENT=mainnet
 
 # Optional overrides
 BSP_REGISTRY_URL=https://api.biologicalsovereigntyprotocol.com
-BSP_ARWEAVE_NODE=https://arweave.net
+BSP_CONTRACT_ADDRESS=0x...
+BSP_APTOS_NETWORK=mainnet
 BSP_TIMEOUT_MS=30000
 ```
 
@@ -388,7 +390,7 @@ interface BEO {
   recovery: RecoveryConfig
   status: 'ACTIVE' | 'LOCKED' | 'RECOVERY_PENDING'
   locked_at: ISO8601 | null
-  arweave_tx?: ArweaveTx
+  aptos_tx?: AptosTxHash
 }
 
 // The identity of an institution
@@ -437,7 +439,7 @@ interface BioRecord {
   source: SourceMeta
   confidence?: number
   status: 'ACTIVE' | 'SUPERSEDED' | 'PENDING'
-  arweave_tx?: ArweaveTx
+  aptos_tx?: AptosTxHash
 }
 ```
 

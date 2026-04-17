@@ -46,14 +46,14 @@ BSP is built on these security guarantees:
 2. **Consent is cryptographic** — ConsentTokens are Ed25519-signed and verified on-chain
 3. **Relayer cannot forge** — the relayer pays gas but cannot modify user-signed payloads
 4. **Recovery requires threshold** — Shamir 2-of-3 guardian threshold prevents single point of failure
-5. **Arweave permanence** — consent history is immutable and auditable forever
+5. **Aptos permanence** — consent history is immutable and auditable on-chain
 
 ## Cryptography
 
 - Key algorithm: Ed25519 (tweetnacl)
 - Key derivation: BIP39 + PBKDF2
 - Key export encryption: AES-256-GCM, PBKDF2-SHA256 (600,000 iterations)
-- On-chain storage: Arweave via AO
+- On-chain storage: Aptos (Move modules)
 
 ## Bug Bounty
 
@@ -63,8 +63,8 @@ protocol recognition as a Security Contributor.
 
 ## Known Limitations
 
-- ConsentTokens are stored on Arweave (permanent). Revocation marks them
+- ConsentTokens are stored on Aptos (permanent). Revocation marks them
   revoked but does not erase them from the chain.
 - The relayer wallet is a centralization point for transaction submission.
   Future protocol versions will support direct user submission.
-- Guardian PII (contact info) stored on Arweave is permanent.
+- Guardian PII (contact info) stored on Aptos is permanent.

@@ -17,7 +17,7 @@ export interface IEOCreateResult {
     ieo: IEO
     ieo_id: UUID
     domain: string
-    arweave_tx: string
+    aptos_tx: string
     private_key: string
     seed_phrase: string
     status: 'ACTIVE'
@@ -72,7 +72,7 @@ export class IEOBuilder {
     }
 
     /**
-     * Register the IEO on Arweave. Returns keys — store them securely.
+     * Register the IEO on Aptos. Returns keys — store them securely.
      *
      * CRITICAL: The private_key and seed_phrase are returned ONCE.
      * If lost, there is no recovery for institutional keys.
@@ -129,14 +129,14 @@ export class IEOBuilder {
                 intents: [],
             },
             status: 'ACTIVE',
-            arweave_tx: result.transactionId,
+            aptos_tx: result.transactionId,
         }
 
         return {
             ieo,
             ieo_id,
             domain: this.options.domain,
-            arweave_tx: result.transactionId,
+            aptos_tx: result.transactionId,
             private_key: privateKey,
             seed_phrase: seed,
             status: 'ACTIVE',
@@ -147,7 +147,7 @@ export class IEOBuilder {
     /**
      * Preview the IEO object that would be registered (dry run).
      */
-    preview(): Omit<IEOCreateResult, 'private_key' | 'seed_phrase' | 'arweave_tx'> {
+    preview(): Omit<IEOCreateResult, 'private_key' | 'seed_phrase' | 'aptos_tx'> {
         const ieo: IEO = {
             ieo_id: 'preview-only',
             domain: this.options.domain,

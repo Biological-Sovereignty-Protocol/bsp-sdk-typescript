@@ -16,7 +16,7 @@ export interface VerifyConsentResult {
 }
 
 export interface IssueConsentOptions {
-    /** UUID of the BEO granting consent (= Arweave tx ID from BEOClient.create()). */
+    /** UUID of the BEO granting consent (= Aptos tx hash from BEOClient.create()). */
     beo_id: string
     /** Domain of the IEO receiving consent (e.g. 'fleury.bsp'). */
     ieo_domain: string
@@ -33,14 +33,14 @@ export interface IssueConsentOptions {
 export interface RevokeConsentResult {
     token_id: string
     revoked_at: ISO8601
-    arweave_tx: string
+    aptos_tx: string
 }
 
 /**
  * AccessManager — Manage ConsentTokens for BSP access.
  *
  * All BSP data access requires explicit consent from the BEO holder,
- * enforced by the AccessControl smart contract on Arweave.
+ * enforced by the AccessControl Move module on Aptos.
  *
  * @example
  * ```typescript
@@ -102,7 +102,7 @@ export class AccessManager {
 
     /**
      * Issue a ConsentToken to an IEO (BEO holder operation only).
-     * The token is signed with the holder's private key and written to Arweave.
+     * The token is signed with the holder's private key and written to Aptos.
      */
     async issueConsent(options: IssueConsentOptions): Promise<ConsentToken> {
         const nonce = CryptoUtils.generateNonce()
@@ -161,7 +161,7 @@ export class AccessManager {
         return {
             token_id: result.token_id,
             revoked_at: result.revoked_at,
-            arweave_tx: result.transactionId,
+            aptos_tx: result.transactionId,
         }
     }
 

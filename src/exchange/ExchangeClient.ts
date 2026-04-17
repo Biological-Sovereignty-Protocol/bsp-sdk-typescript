@@ -38,7 +38,7 @@ export interface ExportOptions {
  *   records:      [bloodTestRecord, hrvRecord],
  *   consentToken: 'tok_...',
  * })
- * console.log(result.arweave_txs) // permanent IDs on Arweave
+ * console.log(result.aptos_txs) // permanent tx hashes on Aptos
  *
  * // Read records (Physician/Platform)
  * const data = await client.readRecords({

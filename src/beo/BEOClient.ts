@@ -19,14 +19,14 @@ export interface CreateBEOResult {
     beo: BEO
     beo_id: UUID
     domain: string
-    arweave_tx: string
+    aptos_tx: string
     private_key: string
     seed_phrase: string
     warning: string
 }
 
 /**
- * BEOClient — Create and manage Biological Entity Objects on Arweave.
+ * BEOClient — Create and manage Biological Entity Objects on Aptos.
  *
  * BEO creation is open to anyone. No permission from the Ambrósio Institute
  * or any authority is required.
@@ -69,7 +69,7 @@ export class BEOClient {
      * Flow:
      * 1. Generate Ed25519 keypair locally (never transmitted raw)
      * 2. Sign the creation payload with the new private key
-     * 3. Relay to Arweave via the registry API (relayer pays gas)
+     * 3. Relay to Aptos via the registry API (relayer pays gas)
      */
     async create(options: CreateBEOOptions): Promise<CreateBEOResult> {
         if (!options.domain.endsWith('.bsp')) {
@@ -103,8 +103,7 @@ export class BEOClient {
         })
 
         const now: ISO8601 = timestamp
-        // beo_id = Arweave transaction ID (ao.id in the process).
-        // The relayer's originalTxId IS the transaction the contract reads, so it matches.
+        // beo_id = Aptos transaction hash from the Move contract call.
         const beo_id = result.transactionId
         const beo: BEO = {
             beo_id,
@@ -125,14 +124,14 @@ export class BEOClient {
                 : { enabled: false, threshold: 0, guardians: [] },
             status: 'ACTIVE',
             locked_at: null,
-            arweave_tx: result.transactionId,
+            aptos_tx: result.transactionId,
         }
 
         return {
             beo,
             beo_id,
             domain: options.domain,
-            arweave_tx: result.transactionId,
+            aptos_tx: result.transactionId,
             private_key: privateKey,
             seed_phrase: seed,
             warning: '⚠️ CRITICAL: Store private_key and seed_phrase SECURELY — they are shown ONCE and cannot be recovered.',
@@ -140,7 +139,7 @@ export class BEOClient {
     }
 
     /**
-     * Resolve a .bsp domain to its full BEO object (reads Arweave state via registry API).
+     * Resolve a .bsp domain to its full BEO object (reads Aptos state via registry API).
      */
     async resolve(domain: string): Promise<BEO> {
         const encoded = encodeURIComponent(domain)
@@ -149,7 +148,7 @@ export class BEOClient {
     }
 
     /**
-     * Get a BEO by its UUID (reads Arweave state via registry API).
+     * Get a BEO by its UUID (reads Aptos state via registry API).
      */
     async get(beoId: UUID): Promise<BEO> {
         const result = await this.http.get<{ beo: BEO }>(`/api/beos/${beoId}`)
@@ -174,9 +173,9 @@ export class BEOClient {
      * Lock a BEO temporarily — no reads or writes permitted while locked.
      * Only the BEO holder can lock or unlock.
      *
-     * @param beoId The UUID of the BEO to lock (= Arweave tx ID from create()).
+     * @param beoId The UUID of the BEO to lock (= Aptos tx hash from create()).
      */
-    async lock(beoId: UUID, reason?: string): Promise<{ locked_at: ISO8601; arweave_tx: string }> {
+    async lock(beoId: UUID, reason?: string): Promise<{ locked_at: ISO8601; aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -191,7 +190,7 @@ export class BEOClient {
             reason: reason ?? null,
         })
 
-        return { locked_at: result.locked_at, arweave_tx: result.transactionId }
+        return { locked_at: result.locked_at, aptos_tx: result.transactionId }
     }
 
     /**
@@ -199,7 +198,7 @@ export class BEOClient {
      *
      * @param beoId The UUID of the BEO to unlock.
      */
-    async unlock(beoId: UUID): Promise<{ unlocked_at: ISO8601; arweave_tx: string }> {
+    async unlock(beoId: UUID): Promise<{ unlocked_at: ISO8601; aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -213,7 +212,7 @@ export class BEOClient {
             timestamp,
         })
 
-        return { unlocked_at: result.unlocked_at, arweave_tx: result.transactionId }
+        return { unlocked_at: result.unlocked_at, aptos_tx: result.transactionId }
     }
 
     /**
@@ -225,7 +224,7 @@ export class BEOClient {
      * Destroy a BEO permanently — LGPD Art. 18 / GDPR Art. 17 (right to erasure).
      * Irreversible: nullifies public key, revokes all ConsentTokens, releases domain.
      */
-    async destroy(beoId: UUID): Promise<{ destroyed_at: ISO8601; arweave_tx: string }> {
+    async destroy(beoId: UUID): Promise<{ destroyed_at: ISO8601; aptos_tx: string }> {
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
 
@@ -239,14 +238,14 @@ export class BEOClient {
             timestamp,
         })
 
-        return { destroyed_at: result.destroyed_at, arweave_tx: result.transactionId }
+        return { destroyed_at: result.destroyed_at, aptos_tx: result.transactionId }
     }
 
     /**
      * Rotate the BEO's Ed25519 key. Requires signature with the current key.
      * After rotation, only the new key can sign operations.
      */
-    async rotateKey(beoId: UUID, newPrivateKey: string): Promise<{ arweave_tx: string }> {
+    async rotateKey(beoId: UUID, newPrivateKey: string): Promise<{ aptos_tx: string }> {
         const newKeypair = CryptoUtils.keyPairFromSeed(newPrivateKey.slice(0, 64))
         const nonce = CryptoUtils.generateNonce()
         const timestamp = new Date().toISOString()
@@ -262,23 +261,23 @@ export class BEOClient {
             timestamp,
         })
 
-        return { arweave_tx: result.transactionId }
+        return { aptos_tx: result.transactionId }
     }
 
     /**
      * Request Social Recovery — initiates recovery on a new device.
      * Guardians will be notified to confirm.
      */
-    async requestRecovery(beoId: UUID, newPublicKey: string): Promise<{ arweave_tx: string }> {
+    async requestRecovery(beoId: UUID, newPublicKey: string): Promise<{ aptos_tx: string }> {
         const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo/request-recovery', {
             beoId,
             newPublicKey,
         })
 
-        return { arweave_tx: result.transactionId }
+        return { aptos_tx: result.transactionId }
     }
 
-    async updateRecovery(beoId: UUID, config: RecoveryConfig): Promise<{ arweave_tx: string }> {
+    async updateRecovery(beoId: UUID, config: RecoveryConfig): Promise<{ aptos_tx: string }> {
         if (config.threshold < 1 || config.threshold > config.guardians.length) {
             throw new Error(`threshold must be between 1 and ${config.guardians.length}`)
         }
@@ -297,6 +296,6 @@ export class BEOClient {
             timestamp,
         })
 
-        return { arweave_tx: result.transactionId }
+        return { aptos_tx: result.transactionId }
     }
 }

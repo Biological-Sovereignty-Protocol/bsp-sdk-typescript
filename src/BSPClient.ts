@@ -44,7 +44,7 @@ import { ExchangeClient } from './exchange/ExchangeClient'
  *     records:      [record],
  *     consentToken: 'tok_...',
  *   })
- *   console.log(result.arweave_txs)
+ *   console.log(result.aptos_txs)
  * }
  * ```
  */

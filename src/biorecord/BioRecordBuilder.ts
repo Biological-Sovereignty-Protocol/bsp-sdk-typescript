@@ -97,7 +97,7 @@ export class BioRecordBuilder {
 
   /**
    * Mark this record as superseding a previous record.
-   * The old record is preserved in Arweave history.
+   * The old record is preserved in Aptos history.
    */
   supersedes(recordId: UUID): this {
     this.data.supersedes = recordId
