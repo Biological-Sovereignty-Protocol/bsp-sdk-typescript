@@ -113,28 +113,47 @@ export class CryptoUtils {
 
     // --- Helpers ---
 
-    private static stringifyDeterministic(obj: Record<string, any>): string {
-        const sortedObj = this.sortObjectKeys(obj)
-        return JSON.stringify(sortedObj)
+    /**
+     * Canonical JSON stringify — public for advanced users who need to
+     * produce the exact same bytes that Python would, for cross-SDK signing.
+     *
+     * Matches `json.dumps(obj, separators=(",", ":"), ensure_ascii=False)`
+     * after recursively sorting object keys.
+     *
+     * We avoid `JSON.stringify(sortedObj)` because although V8 currently
+     * emits no whitespace, that is not guaranteed by the spec or across
+     * engines/versions. Producing the string byte-for-byte removes that risk.
+     */
+    static canonicalStringify(obj: unknown): string {
+        if (obj === null || obj === undefined) {
+            return 'null'
+        }
+        const t = typeof obj
+        if (t === 'number') {
+            // JSON does not allow NaN / Infinity — mirror JSON.stringify → 'null'
+            if (!Number.isFinite(obj as number)) return 'null'
+            return JSON.stringify(obj)
+        }
+        if (t === 'boolean' || t === 'string') {
+            return JSON.stringify(obj)
+        }
+        if (Array.isArray(obj)) {
+            return '[' + obj.map((v) => CryptoUtils.canonicalStringify(v)).join(',') + ']'
+        }
+        if (t === 'object') {
+            const rec = obj as Record<string, unknown>
+            const sortedKeys = Object.keys(rec).sort()
+            const parts = sortedKeys.map(
+                (k) => JSON.stringify(k) + ':' + CryptoUtils.canonicalStringify(rec[k]),
+            )
+            return '{' + parts.join(',') + '}'
+        }
+        // bigint / symbol / function — not representable in JSON
+        throw new Error(`Cannot canonicalize value of type ${t}`)
     }
 
-    private static sortObjectKeys(obj: any): any {
-        if (typeof obj !== 'object' || obj === null) {
-            return obj
-        }
-
-        if (Array.isArray(obj)) {
-            return obj.map(CryptoUtils.sortObjectKeys)
-        }
-
-        const sortedKeys = Object.keys(obj).sort()
-        const result: Record<string, any> = {}
-
-        for (const key of sortedKeys) {
-            result[key] = CryptoUtils.sortObjectKeys(obj[key])
-        }
-
-        return result
+    private static stringifyDeterministic(obj: Record<string, any>): string {
+        return CryptoUtils.canonicalStringify(obj)
     }
 
     private static hexToBytes(hex: string): Uint8Array {
