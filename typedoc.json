@@ -1,0 +1,20 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "BSP TypeScript SDK",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "readme": "README.md",
+  "tsconfig": "tsconfig.json",
+  "hideGenerator": false,
+  "navigationLinks": {
+    "GitHub": "https://github.com/Biological-Sovereignty-Protocol/bsp-sdk-typescript",
+    "BSP": "https://biologicalsovereigntyprotocol.com"
+  },
+  "categorizeByGroup": true,
+  "sort": ["source-order"],
+  "plugin": []
+}
