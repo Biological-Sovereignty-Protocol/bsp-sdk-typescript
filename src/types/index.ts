@@ -1,5 +1,23 @@
-// BSP Core Types — v2.0 (Aptos)
+// BSP Core Types — v3.0 (Aptos, bigint IDs)
 // Full type definitions for the Biological Sovereignty Protocol SDK
+//
+// ╭─ Breaking change (v2 → v3) ────────────────────────────────────────────────╮
+// │ On-chain BSP identifiers (BEO, IEO, ConsentToken, BioRecord) are `u64` in │
+// │ Move. v2 exposed them as `UUID = string`, which silently truncated large  │
+// │ values through JavaScript's `number` coercion in some code paths and did  │
+// │ not match the wire format of the Registry API's new `timestamp_secs` +    │
+// │ hex-nonce alignment.                                                      │
+// │                                                                           │
+// │ v3 models them as native `bigint`. Consumers must use the `BeoId`/        │
+// │ `IeoId`/`ConsentTokenId`/`BioRecordId` branded types. When serialising to │
+// │ JSON use `bsp.serializeId(id)` (emits a string). When deserialising use   │
+// │ `bsp.parseId(raw)` (accepts string or bigint, rejects `number` inputs     │
+// │ above `Number.MAX_SAFE_INTEGER`).                                         │
+// │                                                                           │
+// │ The legacy `UUID` type alias is kept and re-typed to `string` so that     │
+// │ code referring to non-id UUIDs (request ids, record hashes) compiles      │
+// │ unchanged.                                                                │
+// ╰───────────────────────────────────────────────────────────────────────────╯
 
 export type ISO8601 = string
 export type SemVer = string
@@ -8,6 +26,42 @@ export type AptosTxHash = string
 
 /** @deprecated Use AptosTxHash instead. Kept for migration compatibility. */
 export type ArweaveTx = AptosTxHash
+
+// ─── On-chain ID types ───────────────────────────────────────────────────────
+
+/** BSP BEO identifier — u64 on Move, `bigint` in TS. */
+export type BeoId = bigint
+
+/** BSP IEO identifier — u64 on Move, `bigint` in TS. */
+export type IeoId = bigint
+
+/** ConsentToken identifier — u64 on Move, `bigint` in TS. */
+export type ConsentTokenId = bigint
+
+/** BioRecord identifier — u64 on Move, `bigint` in TS. */
+export type BioRecordId = bigint
+
+/**
+ * Parse a wire-format id (string, bigint, or safe-integer number) into a `bigint`.
+ * Throws on unsafe `number` inputs or non-numeric strings — callers should
+ * prefer wire-format strings for cross-language safety.
+ */
+export function parseId(raw: string | number | bigint): bigint {
+  if (typeof raw === 'bigint') return raw
+  if (typeof raw === 'string') {
+    if (!/^\d+$/.test(raw)) throw new TypeError(`id must be decimal digits, got "${raw}"`)
+    return BigInt(raw)
+  }
+  if (!Number.isSafeInteger(raw) || raw < 0) {
+    throw new TypeError(`id number ${raw} is unsafe — pass as string to preserve u64 range`)
+  }
+  return BigInt(raw)
+}
+
+/** Serialize an id to its canonical wire form (decimal string — safe for JSON, u64). */
+export function serializeId(id: bigint): string {
+  return id.toString(10)
+}
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
@@ -46,7 +100,7 @@ export interface RecoveryConfig {
 }
 
 export interface BEO {
-  beo_id: UUID
+  beo_id: BeoId
   domain: string
   public_key: string
   created_at: ISO8601
@@ -68,7 +122,7 @@ export interface IEOCertification {
 }
 
 export interface IEO {
-  ieo_id: UUID
+  ieo_id: IeoId
   domain: string
   display_name: string
   ieo_type: IEOType
@@ -95,7 +149,7 @@ export interface RangeObject {
 }
 
 export interface SourceMeta {
-  ieo_id: UUID
+  ieo_id: IeoId
   ieo_domain: string
   method: string
   equipment?: string
@@ -105,9 +159,9 @@ export interface SourceMeta {
 }
 
 export interface BioRecord {
-  record_id: UUID
-  beo_id: UUID
-  ieo_id: UUID
+  record_id: BioRecordId
+  beo_id: BeoId
+  ieo_id: IeoId
   version: SemVer
   biomarker: string
   category: string
@@ -120,7 +174,7 @@ export interface BioRecord {
   source: SourceMeta
   confidence?: number
   status: RecordStatus
-  supersedes: UUID | null
+  supersedes: BioRecordId | null
   aptos_tx?: AptosTxHash
   data_hash?: string
 }
@@ -139,10 +193,10 @@ export interface TokenScope {
 }
 
 export interface ConsentToken {
-  token_id: string
-  beo_id: UUID
+  token_id: ConsentTokenId
+  beo_id: BeoId
   beo_domain: string
-  ieo_id: UUID
+  ieo_id: IeoId
   ieo_domain: string
   granted_at: ISO8601
   expires_at: ISO8601 | null
@@ -170,15 +224,16 @@ export interface BSPError {
 export interface SubmitResult {
   request_id: string
   status: BSPStatus
-  record_ids: string[]
+  record_ids: BioRecordId[]
   aptos_txs: string[]
-  timestamp: ISO8601
+  /** Wire-format Unix seconds (u64) — matches Registry API `timestamp_secs`. */
+  timestamp_secs: number
   error?: BSPError
 }
 
 export interface ReadResult {
   request_id: string
-  beo_id: UUID
+  beo_id: BeoId
   records: BioRecord[]
   total: number
   has_more: boolean

@@ -74,10 +74,12 @@ describe('TaxonomyResolver', () => {
 
 describe('BioRecordBuilder', () => {
     const IEO_DOMAIN = 'fleury.bsp'
+    const TEST_BEO_ID = 42n
+    const PREV_RECORD_ID = 17n
 
     const buildValid = () =>
         new BioRecordBuilder(IEO_DOMAIN)
-            .setBeoId('550e8400-e29b-41d4-a716-446655440000')
+            .setBeoId(TEST_BEO_ID)
             .setBiomarker('BSP-HM-001')
             .setValue(13.8)
             .setUnit('g/dL')
@@ -85,7 +87,8 @@ describe('BioRecordBuilder', () => {
 
     test('build() — produces valid BioRecord for known code', () => {
         const record = buildValid().build()
-        expect(record.record_id).toBeTruthy()
+        expect(record.beo_id).toBe(TEST_BEO_ID)
+        expect(typeof record.beo_id).toBe('bigint')
         expect(record.biomarker).toBe('BSP-HM-001')
         expect(record.category).toBe('BSP-HM')
         expect(record.level).toBe('STANDARD')
@@ -111,7 +114,7 @@ describe('BioRecordBuilder', () => {
     test('build() — throws when required fields missing', () => {
         expect(() =>
             new BioRecordBuilder(IEO_DOMAIN)
-                .setBeoId('some-id')
+                .setBeoId(1n)
                 .setBiomarker('BSP-HM-001')
                 // missing value, unit, collectionTime
                 .build()
@@ -128,10 +131,10 @@ describe('BioRecordBuilder', () => {
         expect(record.confidence).toBe(0.95)
     })
 
-    test('supersedes() — marks record as correction', () => {
-        const previous_id = '00000000-0000-0000-0000-000000000001'
-        const record = buildValid().supersedes(previous_id).build()
-        expect(record.supersedes).toBe(previous_id)
+    test('supersedes() — marks record as correction using BioRecordId bigint', () => {
+        const record = buildValid().supersedes(PREV_RECORD_ID).build()
+        expect(record.supersedes).toBe(PREV_RECORD_ID)
+        expect(typeof record.supersedes).toBe('bigint')
         expect(record.status).toBe('ACTIVE')
     })
 
@@ -143,13 +146,9 @@ describe('BioRecordBuilder', () => {
         expect(record.ref_range.optimal).toBe('13.5-17.5')
     })
 
-    test('multiple builds from same builder — independent record_ids', () => {
-        const builder = buildValid()
-        const r1 = builder.build()
-        const r2 = new BioRecordBuilder(IEO_DOMAIN)
-            .setBeoId('550e8400-e29b-41d4-a716-446655440000')
-            .setBiomarker('BSP-HM-001').setValue(13.8).setUnit('g/dL')
-            .setCollectionTime('2026-02-26T08:00:00Z').build()
-        expect(r1.record_id).not.toBe(r2.record_id)
+    test('beo_id is a bigint type', () => {
+        const record = buildValid().build()
+        const asBig: bigint = record.beo_id
+        expect(asBig).toBe(TEST_BEO_ID)
     })
 })
