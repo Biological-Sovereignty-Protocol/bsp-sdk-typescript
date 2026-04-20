@@ -1,0 +1,20 @@
+{
+  "seed": "0101010101010101010101010101010101010101010101010101010101010101",
+  "public_key": "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c",
+  "payload": {
+    "biomarker": "BSP-HM-001",
+    "value": 13.8,
+    "unit": "g/dL",
+    "collected_at": "2026-02-26T08:00:00Z",
+    "nested": {
+      "z": 1,
+      "a": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  "canonical": "{\"biomarker\":\"BSP-HM-001\",\"collected_at\":\"2026-02-26T08:00:00Z\",\"nested\":{\"a\":[1,2,3],\"z\":1},\"unit\":\"g/dL\",\"value\":13.8}",
+  "signature": "r1o7sqOOEIF4OcohQi7lKfzuwdS3u0jA0b0Y7gfOBFlB/fXjOet0YkD0W8cxVRuFQxP0sqBy2LqDhK1WW8zYBg=="
+}
