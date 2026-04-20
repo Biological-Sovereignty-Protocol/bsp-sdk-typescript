@@ -130,8 +130,12 @@ export class CryptoUtils {
         }
         const t = typeof obj
         if (t === 'number') {
-            // JSON does not allow NaN / Infinity — mirror JSON.stringify → 'null'
-            if (!Number.isFinite(obj as number)) return 'null'
+            if (Number.isNaN(obj as number)) {
+                throw new Error('canonicalStringify: NaN values are not allowed')
+            }
+            if (!Number.isFinite(obj as number)) {
+                throw new Error('canonicalStringify: Infinity values are not allowed')
+            }
             return JSON.stringify(obj)
         }
         if (t === 'boolean' || t === 'string') {
