@@ -11,8 +11,8 @@
 // │ v3 models them as native `bigint`. Consumers must use the `BeoId`/        │
 // │ `IeoId`/`ConsentTokenId`/`BioRecordId` branded types. When serialising to │
 // │ JSON use `bsp.serializeId(id)` (emits a string). When deserialising use   │
-// │ `bsp.parseId(raw)` (accepts string or bigint, rejects `number` inputs     │
-// │ above `Number.MAX_SAFE_INTEGER`).                                         │
+// │ `bsp.parseId(id)` (accepts string, number, or bigint — prefer string      │
+// │ wire format for IDs that may exceed Number.MAX_SAFE_INTEGER).             │
 // │                                                                           │
 // │ The legacy `UUID` type alias is kept and re-typed to `string` so that     │
 // │ code referring to non-id UUIDs (request ids, record hashes) compiles      │
@@ -42,20 +42,14 @@ export type ConsentTokenId = bigint
 export type BioRecordId = bigint
 
 /**
- * Parse a wire-format id (string, bigint, or safe-integer number) into a `bigint`.
- * Throws on unsafe `number` inputs or non-numeric strings — callers should
- * prefer wire-format strings for cross-language safety.
+ * Parse a wire-format id (string, number, or bigint) into a `bigint`.
+ * Accepts `number` inputs from JSON responses where the REST API returns
+ * numeric IDs (safe integers only — values ≤ 2^53-1). For IDs that may
+ * exceed `Number.MAX_SAFE_INTEGER`, always prefer the string wire format.
  */
-export function parseId(raw: string | number | bigint): bigint {
-  if (typeof raw === 'bigint') return raw
-  if (typeof raw === 'string') {
-    if (!/^\d+$/.test(raw)) throw new TypeError(`id must be decimal digits, got "${raw}"`)
-    return BigInt(raw)
-  }
-  if (!Number.isSafeInteger(raw) || raw < 0) {
-    throw new TypeError(`id number ${raw} is unsafe — pass as string to preserve u64 range`)
-  }
-  return BigInt(raw)
+export function parseId(id: string | number | bigint): bigint {
+  if (typeof id === 'bigint') return id
+  return BigInt(id)
 }
 
 /** Serialize an id to its canonical wire form (decimal string — safe for JSON, u64). */
