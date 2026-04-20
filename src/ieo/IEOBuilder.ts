@@ -1,4 +1,4 @@
-import { IEO, IEOType, IEOCertification, CertLevel, BSPIntent, UUID, ISO8601, SemVer, BSPConfig } from '../types'
+import { IEO, IEOType, IeoId, BSPConfig, parseId } from '../types'
 import { CryptoUtils } from '../utils/CryptoUtils'
 import { HttpClient } from '../utils/HttpClient'
 
@@ -15,7 +15,7 @@ export interface IEOBuilderOptions {
 
 export interface IEOCreateResult {
     ieo: IEO
-    ieo_id: UUID
+    ieo_id: IeoId
     domain: string
     aptos_tx: string
     private_key: string
@@ -99,17 +99,20 @@ export class IEOBuilder {
         }
         const signature = CryptoUtils.signPayload(payloadToSign, privateKey)
 
-        const result = await http.post<{ transactionId: string }>('/api/ieo', {
-            domain: this.options.domain,
-            ieoType: this.options.ieo_type,
-            displayName: this.options.name,
-            publicKey,
-            signature,
-            nonce,
-            timestamp,
-        })
+        const result = await http.post<{ transactionId: string; ieo_id: string | number }>(
+            '/api/ieo',
+            {
+                domain: this.options.domain,
+                ieoType: this.options.ieo_type,
+                displayName: this.options.name,
+                publicKey,
+                signature,
+                nonce,
+                timestamp,
+            },
+        )
 
-        const ieo_id = result.transactionId
+        const ieo_id: IeoId = parseId(result.ieo_id)
         const ieo: IEO = {
             ieo_id,
             domain: this.options.domain,
@@ -148,8 +151,9 @@ export class IEOBuilder {
      * Preview the IEO object that would be registered (dry run).
      */
     preview(): Omit<IEOCreateResult, 'private_key' | 'seed_phrase' | 'aptos_tx'> {
+        // Preview is off-chain; use sentinel 0n (cannot collide with a real on-chain id).
         const ieo: IEO = {
-            ieo_id: 'preview-only',
+            ieo_id: 0n,
             domain: this.options.domain,
             display_name: this.options.name,
             ieo_type: this.options.ieo_type,
@@ -168,6 +172,6 @@ export class IEOBuilder {
             },
             status: 'ACTIVE',
         }
-        return { ieo, ieo_id: 'preview-only', domain: this.options.domain, status: 'ACTIVE', warning: 'PREVIEW — not registered on-chain' }
+        return { ieo, ieo_id: 0n, domain: this.options.domain, status: 'ACTIVE', warning: 'PREVIEW — not registered on-chain' }
     }
 }

@@ -6,6 +6,46 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ---
 
+## [3.0.0] — 2026-04-20
+
+### Breaking
+
+- **`bigint` identifiers.** `BEO.beo_id`, `IEO.ieo_id`, `ConsentToken.token_id`,
+  `BioRecord.record_id`, `BioRecord.supersedes`, and `SourceMeta.ieo_id` are now
+  typed as `bigint` (aliases `BeoId`, `IeoId`, `ConsentTokenId`, `BioRecordId`)
+  to match the on-chain `u64` representation. String/UUID values no longer
+  compile.
+
+  Wire-format strings from the Registry API are parsed via `parseId()` and
+  serialised via `serializeId()`. Both helpers are exported from the SDK root.
+
+- **`timestamp_secs` on the wire.** All write methods (`BEOClient.lock`,
+  `unlock`, `destroy`, `rotateKey`, `updateRecovery`, `requestRecovery`) now
+  send `timestamp_secs: number` (Unix seconds) instead of `timestamp: string`
+  (ISO8601). Aligns with the Registry API v2 schema.
+
+### Migration
+
+```ts
+// v2
+await client.beo.lock('550e8400-e29b-41d4-a716-446655440000')
+
+// v3
+import { parseId } from '@biological-sovereignty-protocol/sdk'
+const beoId = parseId('42') // bigint — safe for u64
+await client.beo.lock(beoId)
+```
+
+### Added
+
+- `parseId(raw: string | number | bigint): bigint` — canonical id parser.
+- `serializeId(id: bigint): string` — canonical wire encoder.
+- `BeoId`, `IeoId`, `ConsentTokenId`, `BioRecordId` type aliases.
+- `tests/bigint-ids.test.ts` — 13 tests covering parse/serialize round-trips
+  and u64 max value preservation.
+
+---
+
 ## [2.1.0] — 2026-04-20
 
 ### Added

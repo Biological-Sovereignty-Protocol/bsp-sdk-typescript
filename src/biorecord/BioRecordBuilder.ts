@@ -1,5 +1,4 @@
-import { BioRecord, BioLevel, RangeObject, RecordStatus, UUID } from '../types'
-import { randomUUID } from 'crypto'
+import { BioRecord, RangeObject, BeoId, BioRecordId, IeoId } from '../types'
 import { TaxonomyResolver } from './TaxonomyResolver'
 
 /**
@@ -28,7 +27,7 @@ import { TaxonomyResolver } from './TaxonomyResolver'
  */
 export class BioRecordBuilder {
   private data: Partial<BioRecord & { ieo_domain: string }> = {
-    record_id: randomUUID(),
+    // record_id is assigned server-side on submit. Leave `undefined` until then.
     version: '1.0.0',
     status: 'ACTIVE',
     supersedes: null,
@@ -39,7 +38,7 @@ export class BioRecordBuilder {
     this.data.ieo_domain = ieo_domain
   }
 
-  setBeoId(beoId: UUID): this {
+  setBeoId(beoId: BeoId): this {
     this.data.beo_id = beoId
     return this
   }
@@ -99,7 +98,7 @@ export class BioRecordBuilder {
    * Mark this record as superseding a previous record.
    * The old record is preserved in Aptos history.
    */
-  supersedes(recordId: UUID): this {
+  supersedes(recordId: BioRecordId): this {
     this.data.supersedes = recordId
     return this
   }
@@ -143,10 +142,12 @@ export class BioRecordBuilder {
       }
     }
 
-    // Build source — signature is populated by the exchange layer after submission
+    // Build source — signature is populated by the exchange layer after submission.
+    // ieo_id will be filled in by ExchangeClient using the signing IEO's canonical
+    // u64 id; we default to 0n so the type system is satisfied.
     if (!this.data.source) {
       this.data.source = {
-        ieo_id: '',
+        ieo_id: 0n as IeoId,
         ieo_domain: this.ieo_domain,
         method: 'unknown',
         signature: '',  // populated by ExchangeClient on submit

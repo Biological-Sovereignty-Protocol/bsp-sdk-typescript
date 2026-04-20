@@ -1,4 +1,12 @@
-import { BEO, UUID, BSPConfig, RecoveryConfig, ISO8601 } from '../types'
+import {
+    BEO,
+    BeoId,
+    BSPConfig,
+    RecoveryConfig,
+    ISO8601,
+    parseId,
+    serializeId,
+} from '../types'
 import { CryptoUtils } from '../utils/CryptoUtils'
 import { HttpClient } from '../utils/HttpClient'
 
@@ -17,7 +25,8 @@ export interface CreateBEOOptions {
 
 export interface CreateBEOResult {
     beo: BEO
-    beo_id: UUID
+    /** On-chain BEO identifier (u64). Serialise with `serializeId(beo_id)` before JSON. */
+    beo_id: BeoId
     domain: string
     aptos_tx: string
     private_key: string
@@ -93,18 +102,23 @@ export class BEOClient {
         }
         const signature = CryptoUtils.signPayload(payloadToSign, privateKey)
 
-        const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo', {
-            domain: options.domain,
-            publicKey,
-            recovery: options.recovery ?? null,
-            signature,
-            nonce,
-            timestamp,
-        })
+        const result = await this.http.post<{ transactionId: string; beo_id: string | number }>(
+            '/api/relayer/beo',
+            {
+                domain: options.domain,
+                publicKey,
+                recovery: options.recovery ?? null,
+                signature,
+                nonce,
+                timestamp,
+            },
+        )
 
         const now: ISO8601 = timestamp
-        // beo_id = Aptos transaction hash from the Move contract call.
-        const beo_id = result.transactionId
+        // beo_id = canonical u64 from the Move contract (wire format: decimal string).
+        // The API returns it alongside the tx hash so SDKs never have to parse it
+        // from an Aptos event.
+        const beo_id: BeoId = parseId(result.beo_id)
         const beo: BEO = {
             beo_id,
             domain: options.domain,
@@ -144,15 +158,17 @@ export class BEOClient {
     async resolve(domain: string): Promise<BEO> {
         const encoded = encodeURIComponent(domain)
         const result = await this.http.get<{ beo: BEO }>(`/api/beos/domain/${encoded}`)
-        return result.beo
+        // Wire format is a decimal string; normalize to bigint.
+        return { ...result.beo, beo_id: parseId(result.beo.beo_id as unknown as string) }
     }
 
     /**
      * Get a BEO by its UUID (reads Aptos state via registry API).
      */
-    async get(beoId: UUID): Promise<BEO> {
-        const result = await this.http.get<{ beo: BEO }>(`/api/beos/${beoId}`)
-        return result.beo
+    async get(beoId: BeoId): Promise<BEO> {
+        const result = await this.http.get<{ beo: BEO }>(`/api/beos/${serializeId(beoId)}`)
+        // Normalize wire format (string → bigint) for the caller.
+        return { ...result.beo, beo_id: parseId(result.beo.beo_id as unknown as string) }
     }
 
     /**
@@ -175,18 +191,19 @@ export class BEOClient {
      *
      * @param beoId The UUID of the BEO to lock (= Aptos tx hash from create()).
      */
-    async lock(beoId: UUID, reason?: string): Promise<{ locked_at: ISO8601; aptos_tx: string }> {
+    async lock(beoId: BeoId, reason?: string): Promise<{ locked_at: ISO8601; aptos_tx: string }> {
+        const wireBeoId = serializeId(beoId)
         const nonce = CryptoUtils.generateNonce()
-        const timestamp = new Date().toISOString()
+        const timestamp_secs = Math.floor(Date.now() / 1000)
 
-        const payloadToSign = { function: 'lockBEO', beoId, nonce, timestamp }
+        const payloadToSign = { function: 'lockBEO', beoId: wireBeoId, nonce, timestamp_secs }
         const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
 
         const result = await this.http.post<{ locked_at: ISO8601; transactionId: string }>('/api/relayer/beo/lock', {
-            beoId,
+            beoId: wireBeoId,
             signature,
             nonce,
-            timestamp,
+            timestamp_secs,
             reason: reason ?? null,
         })
 
@@ -198,18 +215,19 @@ export class BEOClient {
      *
      * @param beoId The UUID of the BEO to unlock.
      */
-    async unlock(beoId: UUID): Promise<{ unlocked_at: ISO8601; aptos_tx: string }> {
+    async unlock(beoId: BeoId): Promise<{ unlocked_at: ISO8601; aptos_tx: string }> {
+        const wireBeoId = serializeId(beoId)
         const nonce = CryptoUtils.generateNonce()
-        const timestamp = new Date().toISOString()
+        const timestamp_secs = Math.floor(Date.now() / 1000)
 
-        const payloadToSign = { function: 'unlockBEO', beoId, nonce, timestamp }
+        const payloadToSign = { function: 'unlockBEO', beoId: wireBeoId, nonce, timestamp_secs }
         const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
 
         const result = await this.http.post<{ unlocked_at: ISO8601; transactionId: string }>('/api/relayer/beo/unlock', {
-            beoId,
+            beoId: wireBeoId,
             signature,
             nonce,
-            timestamp,
+            timestamp_secs,
         })
 
         return { unlocked_at: result.unlocked_at, aptos_tx: result.transactionId }
@@ -224,18 +242,19 @@ export class BEOClient {
      * Destroy a BEO permanently — LGPD Art. 18 / GDPR Art. 17 (right to erasure).
      * Irreversible: nullifies public key, revokes all ConsentTokens, releases domain.
      */
-    async destroy(beoId: UUID): Promise<{ destroyed_at: ISO8601; aptos_tx: string }> {
+    async destroy(beoId: BeoId): Promise<{ destroyed_at: ISO8601; aptos_tx: string }> {
+        const wireBeoId = serializeId(beoId)
         const nonce = CryptoUtils.generateNonce()
-        const timestamp = new Date().toISOString()
+        const timestamp_secs = Math.floor(Date.now() / 1000)
 
-        const payloadToSign = { function: 'destroyBEO', beoId, nonce, timestamp }
+        const payloadToSign = { function: 'destroyBEO', beoId: wireBeoId, nonce, timestamp_secs }
         const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
 
         const result = await this.http.post<{ destroyed_at: ISO8601; transactionId: string }>('/api/relayer/beo/destroy', {
-            beoId,
+            beoId: wireBeoId,
             signature,
             nonce,
-            timestamp,
+            timestamp_secs,
         })
 
         return { destroyed_at: result.destroyed_at, aptos_tx: result.transactionId }
@@ -245,20 +264,27 @@ export class BEOClient {
      * Rotate the BEO's Ed25519 key. Requires signature with the current key.
      * After rotation, only the new key can sign operations.
      */
-    async rotateKey(beoId: UUID, newPrivateKey: string): Promise<{ aptos_tx: string }> {
+    async rotateKey(beoId: BeoId, newPrivateKey: string): Promise<{ aptos_tx: string }> {
+        const wireBeoId = serializeId(beoId)
         const newKeypair = CryptoUtils.keyPairFromSeed(newPrivateKey.slice(0, 64))
         const nonce = CryptoUtils.generateNonce()
-        const timestamp = new Date().toISOString()
+        const timestamp_secs = Math.floor(Date.now() / 1000)
 
-        const payloadToSign = { function: 'rotateKey', beoId, newPublicKey: newKeypair.publicKey, nonce, timestamp }
+        const payloadToSign = {
+            function: 'rotateKey',
+            beoId: wireBeoId,
+            newPublicKey: newKeypair.publicKey,
+            nonce,
+            timestamp_secs,
+        }
         const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
 
         const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo/rotate-key', {
-            beoId,
+            beoId: wireBeoId,
             newPublicKey: newKeypair.publicKey,
             signature,
             nonce,
-            timestamp,
+            timestamp_secs,
         })
 
         return { aptos_tx: result.transactionId }
@@ -268,32 +294,39 @@ export class BEOClient {
      * Request Social Recovery — initiates recovery on a new device.
      * Guardians will be notified to confirm.
      */
-    async requestRecovery(beoId: UUID, newPublicKey: string): Promise<{ aptos_tx: string }> {
+    async requestRecovery(beoId: BeoId, newPublicKey: string): Promise<{ aptos_tx: string }> {
         const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo/request-recovery', {
-            beoId,
+            beoId: serializeId(beoId),
             newPublicKey,
         })
 
         return { aptos_tx: result.transactionId }
     }
 
-    async updateRecovery(beoId: UUID, config: RecoveryConfig): Promise<{ aptos_tx: string }> {
+    async updateRecovery(beoId: BeoId, config: RecoveryConfig): Promise<{ aptos_tx: string }> {
         if (config.threshold < 1 || config.threshold > config.guardians.length) {
             throw new Error(`threshold must be between 1 and ${config.guardians.length}`)
         }
 
+        const wireBeoId = serializeId(beoId)
         const nonce = CryptoUtils.generateNonce()
-        const timestamp = new Date().toISOString()
+        const timestamp_secs = Math.floor(Date.now() / 1000)
 
-        const payloadToSign = { function: 'updateRecovery', beoId, recovery: config, nonce, timestamp }
+        const payloadToSign = {
+            function: 'updateRecovery',
+            beoId: wireBeoId,
+            recovery: config,
+            nonce,
+            timestamp_secs,
+        }
         const signature = CryptoUtils.signPayload(payloadToSign, this.config.private_key)
 
         const result = await this.http.post<{ transactionId: string }>('/api/relayer/beo/recovery', {
-            beoId,
+            beoId: wireBeoId,
             recovery: config,
             signature,
             nonce,
-            timestamp,
+            timestamp_secs,
         })
 
         return { aptos_tx: result.transactionId }

@@ -1,6 +1,6 @@
 {
   "name": "@biological-sovereignty-protocol/sdk",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Official TypeScript SDK for the Biological Sovereignty Protocol",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
