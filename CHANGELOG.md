@@ -6,6 +6,28 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ---
 
+## [2.1.0] — 2026-04-20
+
+### Added
+
+- **Aptos migration**: client now targets Aptos Move contracts; `@aptos-labs/ts-sdk` upgraded to `^6.3.1`.
+- **TypeDoc**: API reference generation via `npm run docs` (config in `typedoc.json`).
+- **CONTRIBUTING.md**: local setup, testing, linting, examples, PR guidelines.
+- **Examples**: split `full-flow.ts` into four focused, runnable examples:
+  - `examples/01-create-beo.ts`
+  - `examples/02-grant-consent.ts`
+  - `examples/03-submit-biorecord.ts`
+  - `examples/04-destroy-beo.ts`
+
+### Changed
+
+- `hexToBytes` now validates even-length hex strings (security hardening).
+- Replaced SmartWeave references with AO across inline comments.
+
+### Infrastructure
+
+- CodeQL and Dependabot workflows added to the repository.
+
 ## [1.0.0] — 2026-03-24
 
 ### Added
