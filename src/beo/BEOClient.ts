@@ -172,6 +172,23 @@ export class BEOClient {
     }
 
     /**
+     * List BEOs with pagination.
+     *
+     * @param limit  Maximum number of results to return (default 20, max 100).
+     * @param offset Zero-based offset for pagination (default 0).
+     * @returns Array of BEO objects.
+     */
+    async list(limit = 20, offset = 0): Promise<BEO[]> {
+        const result = await this.http.get<{ beos: BEO[] }>(
+            `/api/beo?limit=${limit}&offset=${offset}`,
+        )
+        return (result.beos ?? []).map((b) => ({
+            ...b,
+            beo_id: parseId(b.beo_id as unknown as string),
+        }))
+    }
+
+    /**
      * Check if a .bsp domain is available for registration.
      * Returns true if the domain is free.
      */
