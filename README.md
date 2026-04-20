@@ -27,7 +27,7 @@ Requires Node.js >= 18 and TypeScript >= 5.0.
 Minimal working example: create a BEO, grant consent, and submit a biomarker record.
 
 ```typescript
-import { BEOClient, AccessManager, BioRecordBuilder, ExchangeClient } from 'bsp-sdk'
+import { BEOClient, AccessManager, BioRecordBuilder, ExchangeClient, parseId, serializeId } from 'bsp-sdk'
 
 // 1. Create a Biological Entity Object (the individual's sovereign identity)
 const beoClient = new BEOClient()
@@ -36,7 +36,7 @@ const { beo, keyPair } = await beoClient.create({ domain: 'andre.bsp' })
 // 2. Grant consent to an institution (IEO)
 const accessManager = new AccessManager({ beo, privateKey: keyPair.privateKey })
 const token = await accessManager.grantConsent({
-  ieoId: 'my-lab.bsp',
+  ieoId: parseId(lab.ieo_id),   // IeoId is bigint in v3
   scope: {
     intents: ['SUBMIT_RECORD', 'READ_RECORDS'],
     categories: ['METABOLIC'],
@@ -48,7 +48,7 @@ const token = await accessManager.grantConsent({
 
 // 3. Build a signed BioRecord
 const record = new BioRecordBuilder()
-  .beoId(beo.beo_id)
+  .beoId(beo.beo_id)  // beo_id is already a bigint
   .biomarker('BSP-GL-001')   // Fasting glucose
   .value(94)
   .unit('mg/dL')
@@ -58,7 +58,7 @@ const record = new BioRecordBuilder()
   .build()
 
 // 4. Submit via an institution's ExchangeClient
-const exchange = new ExchangeClient({ ieoId: 'my-lab.bsp', privateKey: labPrivateKey })
+const exchange = new ExchangeClient({ ieoId: lab.ieo_id, privateKey: labPrivateKey })
 const result = await exchange.submit(record, token)
 console.log(result.aptos_txs) // permanent record on Aptos
 ```
@@ -80,10 +80,10 @@ const client = new BEOClient()
 |---|---|---|---|
 | `create(opts)` | `{ domain: string, guardians?: Guardian[] }` | `Promise<{ beo: BEO, keyPair: KeyPair }>` | Creates a new BEO and Ed25519 key pair |
 | `recover(seedPhrase)` | `seedPhrase: string` | `Promise<{ beo: BEO, keyPair: KeyPair }>` | Recovers BEO from a BIP39 seed phrase |
-| `rotateKey(beoId, oldKey, newKey)` | `string, Uint8Array, Uint8Array` | `Promise<BEO>` | Rotates the signing key and publishes updated BEO |
-| `lock(beoId, privateKey)` | `string, Uint8Array` | `Promise<BEO>` | Locks the BEO (freezes new record submissions) |
-| `unlock(beoId, privateKey)` | `string, Uint8Array` | `Promise<BEO>` | Unlocks a previously locked BEO |
-| `get(beoId)` | `string` | `Promise<BEO>` | Fetches a BEO by ID from the registry |
+| `rotateKey(beoId, oldKey, newKey)` | `BeoId (bigint), Uint8Array, Uint8Array` | `Promise<BEO>` | Rotates the signing key and publishes updated BEO |
+| `lock(beoId, privateKey)` | `BeoId (bigint), Uint8Array` | `Promise<BEO>` | Locks the BEO (freezes new record submissions) |
+| `unlock(beoId, privateKey)` | `BeoId (bigint), Uint8Array` | `Promise<BEO>` | Unlocks a previously locked BEO |
+| `get(beoId)` | `BeoId (bigint)` | `Promise<BEO>` | Fetches a BEO by ID from the registry |
 
 ---
 
@@ -99,9 +99,9 @@ const builder = new IEOBuilder()
 | Method | Params | Returns | Description |
 |---|---|---|---|
 | `createIEO(opts)` | `IEOCreateOptions` | `Promise<IEO>` | Registers a new institution on the protocol |
-| `rotateKey(ieoId, oldKey, newKey)` | `string, Uint8Array, Uint8Array` | `Promise<IEO>` | Rotates the institution's signing key |
-| `updateContacts(ieoId, contacts)` | `string, ContactInfo` | `Promise<IEO>` | Updates legal/contact metadata |
-| `get(ieoId)` | `string` | `Promise<IEO>` | Fetches an IEO by ID |
+| `rotateKey(ieoId, oldKey, newKey)` | `IeoId (bigint), Uint8Array, Uint8Array` | `Promise<IEO>` | Rotates the institution's signing key |
+| `updateContacts(ieoId, contacts)` | `IeoId (bigint), ContactInfo` | `Promise<IEO>` | Updates legal/contact metadata |
+| `get(ieoId)` | `IeoId (bigint)` | `Promise<IEO>` | Fetches an IEO by ID |
 
 `IEOCreateOptions`:
 
@@ -123,10 +123,11 @@ const builder = new IEOBuilder()
 Fluent builder for constructing and signing BioRecords before submission.
 
 ```typescript
-import { BioRecordBuilder } from 'bsp-sdk'
+import { BioRecordBuilder, parseId, serializeId } from 'bsp-sdk'
 
+// IDs are bigint in v3 — use parseId() to convert from API strings
 const record = new BioRecordBuilder()
-  .beoId('uuid-of-beo')
+  .beoId(parseId('1234567890'))  // or beo.beo_id directly
   .biomarker('BSP-GL-001')
   .value(94)
   .unit('mg/dL')
@@ -140,7 +141,7 @@ const record = new BioRecordBuilder()
 
 | Method | Params | Returns | Description |
 |---|---|---|---|
-| `.beoId(id)` | `string` | `this` | Sets the BEO owner |
+| `.beoId(id)` | `BeoId (bigint)` | `this` | Sets the BEO owner |
 | `.biomarker(code)` | `string` | `this` | BSP taxonomy code (e.g. `BSP-GL-001`) |
 | `.value(v)` | `number \| string \| object` | `this` | Measured value |
 | `.unit(u)` | `string` | `this` | Unit of measurement |
@@ -183,9 +184,9 @@ const manager = new AccessManager({ beo, privateKey })
 | Method | Params | Returns | Description |
 |---|---|---|---|
 | `grantConsent(opts)` | `ConsentGrantOptions` | `Promise<ConsentToken>` | Creates and signs a ConsentToken |
-| `revokeToken(tokenId)` | `string` | `Promise<void>` | Revokes an active token immediately |
+| `revokeToken(tokenId)` | `ConsentTokenId (bigint)` | `Promise<void>` | Revokes an active token immediately |
 | `verifyToken(token)` | `ConsentToken` | `Promise<boolean>` | Verifies token signature and checks revocation status |
-| `listTokens(beoId)` | `string` | `Promise<ConsentToken[]>` | Lists all active tokens for a BEO |
+| `listTokens(beoId)` | `BeoId (bigint)` | `Promise<ConsentToken[]>` | Lists all active tokens for a BEO |
 
 ---
 
@@ -220,6 +221,8 @@ import {
   BioRecordBuilder,
   ExchangeClient,
   CryptoUtils,
+  parseId,
+  serializeId,
 } from 'bsp-sdk'
 
 // ── 1. Institution setup (done once) ─────────────────────────────────────────
@@ -258,7 +261,7 @@ const { beo } = await beoClient.create({
 const accessManager = new AccessManager({ beo, privateKey: keyPair.privateKey })
 
 const token = await accessManager.grantConsent({
-  ieoId: lab.ieo_id,
+  ieoId: lab.ieo_id,  // IeoId — already bigint
   scope: {
     intents: ['SUBMIT_RECORD', 'READ_RECORDS'],
     categories: ['METABOLIC', 'HORMONAL'],
@@ -294,6 +297,7 @@ const submitResult = await exchange.submit(record, token)
 console.log('Aptos TX:', submitResult.aptos_txs[0])
 
 // ── 5. Lab queries back the records ──────────────────────────────────────────
+// beo.beo_id is bigint — pass directly; use serializeId() only when sending to JSON/API
 const readResult = await exchange.query(beo.beo_id, token, {
   categories: ['METABOLIC'],
   limit: 50,
@@ -301,6 +305,7 @@ const readResult = await exchange.query(beo.beo_id, token, {
 console.log(`Retrieved ${readResult.total} records`)
 
 // ── 6. Revoke consent when done ──────────────────────────────────────────────
+// token.token_id is ConsentTokenId (bigint) — pass directly
 await accessManager.revokeToken(token.token_id)
 ```
 
@@ -375,6 +380,28 @@ BSP_TIMEOUT_MS=30000
 
 ---
 
+## ID Helpers — `parseId` and `serializeId`
+
+Since v3.0.0 all entity IDs (`BeoId`, `IeoId`, `ConsentTokenId`, `BioRecordId`) are native `bigint`, matching the `u64` type on Move. The JSON wire format still uses decimal strings. Use these two helpers at the serialization boundary:
+
+```typescript
+import { parseId, serializeId } from 'bsp-sdk'
+
+// Deserializing from an API response or env var
+const beoId = parseId('9007199254740993')   // → 9007199254740993n (bigint)
+const ieoId = parseId(BigInt('42'))         // → 42n (pass-through)
+
+// Serializing before JSON.stringify or logging
+const wire = serializeId(beoId)             // → "9007199254740993"
+
+// Example: reading an ID from an env var
+const myBeoId = parseId(process.env.BSP_BEO_ID!)
+```
+
+> IDs returned by SDK methods (`beo.beo_id`, `lab.ieo_id`, `token.token_id`) are already `bigint` — no conversion needed until you send them over JSON.
+
+---
+
 ## TypeScript Types
 
 Key interfaces exported from `bsp-sdk`:
@@ -406,9 +433,9 @@ interface IEO {
 
 // Defines what an institution is allowed to do with a BEO's data
 interface ConsentToken {
-  token_id: string
-  beo_id: UUID
-  ieo_id: UUID
+  token_id: ConsentTokenId  // bigint — use serializeId(token_id) when sending to JSON
+  beo_id: BeoId             // bigint
+  ieo_id: IeoId             // bigint
   granted_at: ISO8601
   expires_at: ISO8601 | null
   scope: TokenScope
